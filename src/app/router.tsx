@@ -1,14 +1,18 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
-import { Dashboard } from '../features/dashboard/Dashboard';
-import { ExamAnalysis } from '../features/analysis/ExamAnalysis';
-import { TopicsPage } from '../features/topics/TopicsPage';
-import { ExercisesPage } from '../features/exercises/ExercisesPage';
-import { VisualizersPage } from '../features/visualizers/VisualizersPage';
+import { DashboardPage } from '../pages/DashboardPage';
+import { OnboardingPage } from '../pages/OnboardingPage';
+import { LearnPathPage } from '../pages/LearnPathPage';
+import { LessonPage } from '../pages/LessonPage';
+import { TopicsIndexPage } from '../pages/TopicsIndexPage';
+import { PracticeHubPage } from '../pages/PracticeHubPage';
+import { LegacyExercisesPage } from '../pages/LegacyExercisesPage';
+import { VisualizersPage } from '../pages/VisualizersPage';
 import { SQLReference } from '../features/sql/SQLReference';
-import { ExamMode } from '../features/exam/ExamMode';
-import { MistakeLog } from '../features/mistakes/MistakeLog';
-import { StudyPath } from '../features/studypath/StudyPath';
+import { ExamAnalysisPage } from '../pages/ExamAnalysisPage';
+import { ExamModePage } from '../pages/ExamModePage';
+import { MistakesPage } from '../pages/MistakesPage';
+import { GlossaryPage } from '../pages/GlossaryPage';
 
 function WithLayout({ children }: { children: React.ReactNode }) {
   return <Layout>{children}</Layout>;
@@ -17,42 +21,115 @@ function WithLayout({ children }: { children: React.ReactNode }) {
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <WithLayout><Dashboard /></WithLayout>,
+    element: (
+      <WithLayout>
+        <DashboardPage />
+      </WithLayout>
+    ),
   },
   {
-    path: '/analyse',
-    element: <WithLayout><ExamAnalysis /></WithLayout>,
-  },
-  {
-    path: '/themen',
-    element: <WithLayout><TopicsPage /></WithLayout>,
-  },
-  {
-    path: '/themen/:topicId',
-    element: <WithLayout><TopicsPage /></WithLayout>,
-  },
-  {
-    path: '/ueben',
-    element: <WithLayout><ExercisesPage /></WithLayout>,
-  },
-  {
-    path: '/visualizer',
-    element: <WithLayout><VisualizersPage /></WithLayout>,
-  },
-  {
-    path: '/sql',
-    element: <WithLayout><SQLReference /></WithLayout>,
-  },
-  {
-    path: '/klausur',
-    element: <WithLayout><ExamMode /></WithLayout>,
-  },
-  {
-    path: '/fehlerlog',
-    element: <WithLayout><MistakeLog /></WithLayout>,
+    path: '/onboarding',
+    element: (
+      <WithLayout>
+        <OnboardingPage />
+      </WithLayout>
+    ),
   },
   {
     path: '/lernpfad',
-    element: <WithLayout><StudyPath /></WithLayout>,
+    element: (
+      <WithLayout>
+        <LearnPathPage />
+      </WithLayout>
+    ),
   },
+  {
+    path: '/lernen/:stageId/:unitId',
+    element: (
+      <WithLayout>
+        <LessonPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/themen',
+    element: (
+      <WithLayout>
+        <TopicsIndexPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/themen/:topicId',
+    element: (
+      <WithLayout>
+        <TopicsIndexPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/ueben',
+    element: (
+      <WithLayout>
+        <PracticeHubPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/uebungspool',
+    element: (
+      <WithLayout>
+        <LegacyExercisesPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/visualizer',
+    element: (
+      <WithLayout>
+        <VisualizersPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/sql',
+    element: (
+      <WithLayout>
+        <SQLReference />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/analyse',
+    element: (
+      <WithLayout>
+        <ExamAnalysisPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/klausur',
+    element: (
+      <WithLayout>
+        <ExamModePage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/fehlerlog',
+    element: (
+      <WithLayout>
+        <MistakesPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/glossar',
+    element: (
+      <WithLayout>
+        <GlossaryPage />
+      </WithLayout>
+    ),
+  },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);

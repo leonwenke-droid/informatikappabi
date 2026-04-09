@@ -8,6 +8,7 @@ import { HuffmanVisualizer } from './HuffmanVisualizer';
 import { DataStructuresVisualizer } from './DataStructuresVisualizer';
 import { PDAVisualizer } from './PDAVisualizer';
 import { GrammarSimulator } from './GrammarSimulator';
+import { VisualizerFrame } from '../visualizer/VisualizerFrame';
 
 const TABS = [
   { id: 'bst', label: 'BST', icon: '🌲' },
@@ -35,13 +36,41 @@ export function VisualizersPage() {
         className="mb-6"
       />
 
-      {activeTab === 'bst' && <BSTVisualizer />}
-      {activeTab === 'huffman' && <HuffmanVisualizer />}
-      {activeTab === 'hamming' && <HammingVisualizer />}
-      {activeTab === 'dea' && <DEAVisualizer />}
-      {activeTab === 'datenstrukturen' && <DataStructuresVisualizer />}
-      {activeTab === 'pda' && <PDAVisualizer />}
-      {activeTab === 'grammatik' && <GrammarSimulator />}
+      {activeTab === 'bst' && (
+        <VisualizerFrame title="BST" typicalError="Links/rechts vertauscht: im BST ist links kleiner, rechts größer.">
+          <BSTVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'huffman' && (
+        <VisualizerFrame title="Huffman" typicalError="Häufigkeit zuerst zählen; seltenste Knoten zuerst zusammenfügen.">
+          <HuffmanVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'hamming' && (
+        <VisualizerFrame title="Hamming (7,4)" typicalError="Bitpositionen exakt nach offizieller Anlage — nicht umsortieren.">
+          <HammingVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'dea' && (
+        <VisualizerFrame title="DEA" typicalError="Zustand + gelesenes Zeichen bestimmen den Übergang eindeutig.">
+          <DEAVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'datenstrukturen' && (
+        <VisualizerFrame title="Stack / Queue" typicalError="Stack = LIFO, Queue = FIFO — in Aufgabenstellungen genau zuordnen.">
+          <DataStructuresVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'pda' && (
+        <VisualizerFrame title="Kellerautomat" typicalError="Keller ist zentral: Push/Pop mit Eingabe synchron lesen.">
+          <PDAVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'grammatik' && (
+        <VisualizerFrame title="Grammatik" typicalError="Regeln nur an erstem Nichtterminal (linkes) anwenden — linkeste Ableitung üben.">
+          <GrammarSimulator />
+        </VisualizerFrame>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { EvaluationResult, Exercise } from '../../types';
+import { inferMisconceptionsFromFeedback } from '../errors/taxonomy';
 
 /**
  * LOCAL EVALUATOR
@@ -251,31 +252,40 @@ export function evaluateExercise(
       exercise.points,
       exercise.explanation
     );
+    const misconceptionIds =
+      result.score < result.maxScore ? inferMisconceptionsFromFeedback(result.feedback) : undefined;
     return {
       score: result.score,
       maxScore: result.maxScore,
       feedback: result.feedback,
       source: 'local',
+      misconceptionIds,
     };
   }
 
   if (exercise.type === 'sql') {
     const result = evaluateSQL(userAnswer, exercise);
+    const misconceptionIds =
+      result.score < result.maxScore ? inferMisconceptionsFromFeedback(result.feedback) : undefined;
     return {
       score: result.score,
       maxScore: result.maxScore,
       feedback: result.feedback,
       source: 'local',
+      misconceptionIds,
     };
   }
 
   // text or code
   const result = evaluateText(userAnswer, exercise);
+  const misconceptionIds =
+    result.score < result.maxScore ? inferMisconceptionsFromFeedback(result.feedback) : undefined;
   return {
     score: result.score,
     maxScore: result.maxScore,
     feedback: result.feedback,
     source: 'local',
+    misconceptionIds,
   };
 }
 

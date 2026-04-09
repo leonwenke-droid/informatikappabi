@@ -91,7 +91,7 @@ export function TopicsPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigate(`/ueben?topic=${activeTopic.id}`)}
+                onClick={() => navigate(`/uebungspool?topic=${activeTopic.id}`)}
               >
                 Aufgaben üben <ChevronRight size={14} />
               </Button>
@@ -209,7 +209,7 @@ export function TopicsPage() {
                         <Card
                           key={ex.id}
                           className="p-4 cursor-pointer hover:border-blue-500/30 transition-all"
-                          onClick={() => navigate(`/ueben?topic=${activeTopic.id}&exercise=${ex.id}`)}
+                          onClick={() => navigate(`/uebungspool?topic=${activeTopic.id}&exercise=${ex.id}`)}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">

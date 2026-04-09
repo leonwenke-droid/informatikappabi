@@ -1,3 +1,5 @@
+import type { MisconceptionId } from './learning';
+
 // ─────────────────────────────────────────────────────────
 // Official curriculum types — based on KC 2017 + Ergänzende Hinweise 2021
 // ─────────────────────────────────────────────────────────
@@ -214,6 +216,7 @@ export interface EvaluationResult {
   feedback: string;
   tip?: string;
   source: 'local' | 'ai';
+  misconceptionIds?: MisconceptionId[];
 }
 
 export interface AIEvaluatorAdapter {
