@@ -17,7 +17,7 @@ export function LearnPathPage() {
     <div>
       <PageHeader
         title="Von Grund auf lernen"
-        subtitle="15 Etappen — Voraussetzungen und Fortschritt"
+        subtitle="16 Etappen — didaktische Reihenfolge, ohne Prognose-Hinweise"
       />
       <div className="space-y-3">
         {sorted.map((stage) => {
@@ -33,10 +33,18 @@ export function LearnPathPage() {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-sm font-mono text-slate-400">
                     {stage.order}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-sm font-semibold text-slate-100">{stage.title}</h3>
                     {stage.subtitle && <p className="text-xs text-slate-500 mt-0.5">{stage.subtitle}</p>}
-                    <p className="text-[11px] text-slate-600 mt-1">ca. {stage.estimatedMinutes} Min · Schwierigkeit {stage.difficulty}</p>
+                    {stage.description && <p className="text-[12px] text-slate-400 mt-2 leading-relaxed">{stage.description}</p>}
+                    {stage.learningGoals && stage.learningGoals.length > 0 && (
+                      <ul className="mt-2 text-[11px] text-slate-500 list-disc pl-4 space-y-0.5">
+                        {stage.learningGoals.slice(0, 4).map((g) => (
+                          <li key={g}>{g}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="text-[11px] text-slate-600 mt-2">ca. {stage.estimatedMinutes} Min · Schwierigkeit {stage.difficulty}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

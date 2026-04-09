@@ -106,6 +106,7 @@ export const UNIT_S01_U01: PathUnit = {
       id: 'ex-s01-u01-a',
       unitId: 's01-u01',
       title: 'Mini-Check: Algorithmus erkennen',
+      track: 'mini',
       modes: ['free', 'guided', 'stepHints', 'showSolution'],
       guidedSteps: [
         'Lies jede Antwort und frage: Ist die Vorgehensweise endlich und eindeutig?',

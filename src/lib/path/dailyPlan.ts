@@ -5,7 +5,7 @@ export interface DailyPlanItem {
   id: string;
   label: string;
   href: string;
-  kind: 'learn_new' | 'review' | 'viz' | 'guided' | 'independent';
+  kind: 'learn_new' | 'review' | 'viz' | 'guided' | 'independent' | 'unit_review';
 }
 
 export interface DailyPlanInput {
@@ -13,10 +13,12 @@ export interface DailyPlanInput {
   unitProgress: Record<string, { completed: boolean }>;
   dueReviewExerciseCount: number;
   todayKey: string;
+  /** Lernpfad-Units, die laut Wiederholungslogik anstehen */
+  unitReviewSuggestions?: { stageId: string; unitId: string; title?: string }[];
 }
 
 /**
- * Einfacher Tagesplan: Vorschläge aus nächster Lernunit + Wiederholung + feste Deep-Links.
+ * Tagesplan: nächste Lektion, Lernpfad-Wiederholung, Legacy-Übungen, Visualisierung — ohne Prüfungs-Countdown-Logik.
  */
 export function buildDailyPlan(input: DailyPlanInput): DailyPlanItem[] {
   const items: DailyPlanItem[] = [];
@@ -25,16 +27,28 @@ export function buildDailyPlan(input: DailyPlanInput): DailyPlanItem[] {
   if (next) {
     items.push({
       id: 'learn_new',
-      label: 'Heute neu: nächste Lektion',
+      label: 'Als Nächstes: nächste Lektion im Lernpfad',
       href: `/lernen/${next.stageId}/${next.unitId}`,
       kind: 'learn_new',
+    });
+  }
+
+  const ur = input.unitReviewSuggestions?.[0];
+  if (ur) {
+    items.push({
+      id: 'unit_review',
+      label: ur.title
+        ? `Kurz wiederholen: ${ur.title}`
+        : 'Kurz eine Lernpfad-Lektion wiederholen',
+      href: `/lernen/${ur.stageId}/${ur.unitId}`,
+      kind: 'unit_review',
     });
   }
 
   if (input.dueReviewExerciseCount > 0) {
     items.push({
       id: 'review',
-      label: `Heute wiederholen (${input.dueReviewExerciseCount} Aufgaben fällig)`,
+      label: `Aufgaben aus dem Pool (${input.dueReviewExerciseCount} zum Wiederholen markiert)`,
       href: '/uebungspool?review=1',
       kind: 'review',
     });
@@ -49,15 +63,15 @@ export function buildDailyPlan(input: DailyPlanInput): DailyPlanItem[] {
 
   items.push({
     id: 'guided',
-    label: 'Heute eine geführte Übung',
+    label: 'Geführte Übung (Lernpfad)',
     href: next ? `/ueben?unit=${next.unitId}&mode=guided` : '/ueben?mode=guided',
     kind: 'guided',
   });
 
   items.push({
     id: 'independent',
-    label: 'Heute eine selbstständige Aufgabe',
-    href: '/ueben?mode=free',
+    label: 'Selbstständig üben (Aufgabenpool)',
+    href: '/uebungspool?filter=beginner',
     kind: 'independent',
   });
 

@@ -34,9 +34,22 @@ export function HammingVisualizer() {
     setErrorBitPos(null);
   };
 
+  const stepHints = [
+    'Schritt 1: Datenbits d0–d3 festlegen — sie landen an den Positionen 3,5,6,7 im Codewort (Notation p0 p1 d0 p2 d1 d2 d3).',
+    'Schritt 2: Paritätsbits p0,p1,p2 so wählen, dass bestimmte Paritätsgruppen jeweils gerade Parität haben (nach eurer offiziellen Anlage).',
+    'Schritt 3: Einzelbit-Fehler: Syndrom aus Paritätsprüfungen ergibt die Position des verfälschten Bits — hier vereinfacht simuliert.',
+  ];
+
   return (
     <div className="space-y-5">
       <SectionCard title="(7,4)-Hamming-Code Visualizer" subtitle="Offizielle Notation: p0 p1 d0 p2 d1 d2 d3">
+        <AlertBox variant="info" className="mb-5" title="Didaktik pro Schritt">
+          <ul className="text-[12px] text-slate-300 list-disc pl-4 space-y-1">
+            {stepHints.map((t) => (
+              <li key={t.slice(0, 24)}>{t}</li>
+            ))}
+          </ul>
+        </AlertBox>
         {/* Data bit input */}
         <div className="mb-6">
           <div className="text-[13px] text-slate-400 mb-3 font-medium">Datenbits eingeben (klicken zum Umschalten):</div>

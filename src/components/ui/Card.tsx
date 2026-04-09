@@ -5,9 +5,10 @@ interface CardProps {
   className?: string;
   onClick?: () => void;
   variant?: 'default' | 'elevated' | 'ghost';
+  id?: string;
 }
 
-export function Card({ children, className = '', onClick, variant = 'default' }: CardProps) {
+export function Card({ children, className = '', onClick, variant = 'default', id }: CardProps) {
   const base = 'rounded-xl border';
   const variants = {
     default: 'bg-[#0e1525] border-[#1e2d45]',
@@ -18,6 +19,7 @@ export function Card({ children, className = '', onClick, variant = 'default' }:
 
   return (
     <div
+      id={id}
       className={`${base} ${variants[variant]} ${interactive} ${className}`}
       onClick={onClick}
     >

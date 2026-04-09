@@ -58,7 +58,7 @@ export function TopicsPage() {
                   <span className="text-[13px] font-medium flex-1 truncate">{t.title}</span>
                 </div>
                 <div className="flex items-center justify-between pl-[22px]">
-                  <PriorityBadge priority={t.priority} />
+                  <BlockTag block={t.block} />
                   {exCount > 0 && completedCount > 0 && (
                     <span className="text-[10px] text-slate-600">
                       {completedCount}/{exCount}
@@ -79,7 +79,6 @@ export function TopicsPage() {
                 {activeTopic.title}
               </h2>
               <div className="flex items-center gap-2 mt-2">
-                <PriorityBadge priority={activeTopic.priority} />
                 <BlockTag block={activeTopic.block} />
                 <span className="text-[12px] text-slate-500">{activeTopic.category}</span>
                 {activeTopic.officialNote && (
@@ -191,8 +190,9 @@ export function TopicsPage() {
           {activeTab === 'muster' && (
             <div>
               <div className="border border-blue-500/20 bg-blue-500/[0.05] rounded-xl p-5 mb-4">
-                <div className="text-[13px] font-bold text-blue-300 mb-3">
+                <div className="text-[13px] font-bold text-blue-300 mb-3 flex flex-wrap items-center gap-2">
                   📋 Klausurmuster aus 2021–2025 <span className="text-blue-500/60">(abgeleitet, keine offizielle Vorgabe)</span>
+                  <PriorityBadge priority={activeTopic.priority} />
                 </div>
                 <p className="text-[13.5px] text-blue-200/80 leading-relaxed">{activeTopic.examPattern}</p>
               </div>

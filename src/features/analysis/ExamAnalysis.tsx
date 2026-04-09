@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { PageHeader } from '../../components/layout/Layout';
 import { SectionCard, AlertBox } from '../../components/ui/Card';
-import { PriorityBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { EXAM_YEARS, TOPIC_FREQUENCIES, PROGNOSE_2026 } from '../../data/examYears';
 import {
@@ -11,8 +10,16 @@ import {
 const YEARS = [2021, 2022, 2023, 2024, 2025];
 
 
+function blockFrequencyLabel(tf: { block1Count: number; block2Count: number }): string {
+  const parts: string[] = [];
+  if (tf.block1Count > 0) parts.push(`B1 in ${tf.block1Count}/5 Jahrgängen`);
+  if (tf.block2Count > 0) parts.push(`B2 in ${tf.block2Count}/5 Jahrgängen`);
+  return parts.length ? parts.join(' · ') : 'Selten in Stichprobe';
+}
+
 export function ExamAnalysis() {
   const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const [prognoseOpen, setPrognoseOpen] = useState(false);
   const yearData = EXAM_YEARS.find((y) => y.year === selectedYear);
   const maxCount = Math.max(...TOPIC_FREQUENCIES.map((t) => t.block1Count + t.block2Count));
 
@@ -21,7 +28,6 @@ export function ExamAnalysis() {
     fullName: tf.topicLabel,
     B1: tf.block1Count,
     B2: tf.block2Count,
-    priority: tf.priority,
   }));
 
   return (
@@ -32,9 +38,8 @@ export function ExamAnalysis() {
       />
 
       <AlertBox variant="warning" title="Hinweis zur Dateninterpretation" className="mb-5">
-        Diese Analyse basiert auf den eA-Klausuren 2021–2025 und dient zur Priorisierung. Die 2026-Prognose
-        ist eine didaktische Ableitung — <strong>keine offizielle Vorgabe</strong> des Kultusministeriums.
-        Alle Themen des KC 2017 sind prüfungsrelevant.
+        Diese Analyse basiert auf den eA-Klausuren 2021–2025. <strong>Prognose 2026</strong> ist eine didaktische Ableitung —
+        keine offizielle Vorgabe. Alle Themen des KC 2017 sind prüfungsrelevant.
       </AlertBox>
 
       {/* Frequency Chart */}
@@ -74,9 +79,9 @@ export function ExamAnalysis() {
           {TOPIC_FREQUENCIES.map((tf) => (
             <div key={tf.topicId} className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="text-[13px] font-semibold text-slate-200 truncate">{tf.topicLabel}</span>
-                  <PriorityBadge priority={tf.priority} />
+                  <span className="text-[10px] text-slate-500">{blockFrequencyLabel(tf)}</span>
                 </div>
                 <div className="flex gap-2 h-2">
                   {tf.block1Count > 0 && (
@@ -174,46 +179,56 @@ export function ExamAnalysis() {
         )}
       </SectionCard>
 
-      {/* 2026 Prognose */}
-      <div className="border border-amber-500/25 bg-amber-500/[0.04] rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-amber-400 text-lg">⭐</span>
-          <h3 className="text-[15px] font-bold text-amber-300">
-            2026-Prognose — <span className="text-amber-500">KEINE offizielle Vorgabe!</span>
-          </h3>
-        </div>
-        <p className="text-[12px] text-amber-700 mb-4">
-          Abgeleitet aus den Mustern 2021–2025. Dient der Priorisierung, ersetzt keine vollständige Prüfungsvorbereitung.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {PROGNOSE_2026.map((p) => (
-            <div
-              key={p.taskSlot}
-              className="bg-black/30 rounded-lg p-3.5 border border-amber-500/10"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[12px] font-bold text-amber-400">{p.taskSlot}</span>
-                <span
-                  className="text-[15px] font-extrabold"
-                  style={{ color: p.probability >= 95 ? '#ef4444' : '#f59e0b' }}
-                >
-                  {p.probability}%
-                </span>
-              </div>
-              <div className="text-[13px] font-semibold text-slate-200 mb-1.5">{p.topic}</div>
-              <div className="h-1 bg-[#1e2d45] rounded-full mb-2">
+      <div className="border border-amber-500/20 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between gap-3 px-5 py-4 bg-amber-500/[0.06] hover:bg-amber-500/[0.1] text-left transition-colors"
+          onClick={() => setPrognoseOpen((o) => !o)}
+        >
+          <div>
+            <h3 className="text-[14px] font-bold text-amber-300">
+              2026-Prognose <span className="text-amber-500 font-normal">(didaktisch, nicht amtlich)</span>
+            </h3>
+            <p className="text-[11px] text-amber-800/90 mt-0.5">Nur hier; global in der App nicht hervorgehoben.</p>
+          </div>
+          <span className="text-amber-400 text-sm font-mono">{prognoseOpen ? '▲' : '▼'}</span>
+        </button>
+        {prognoseOpen && (
+          <div className="p-5 border-t border-amber-500/20 bg-amber-500/[0.03]">
+            <p className="text-[12px] text-amber-800/90 mb-4">
+              Abgeleitet aus Mustern 2021–2025. Ersetzt keine vollständige Vorbereitung.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {PROGNOSE_2026.map((p) => (
                 <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${p.probability}%`,
-                    background: p.probability >= 95 ? '#ef4444' : '#f59e0b',
-                  }}
-                />
-              </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">{p.reasoning}</p>
+                  key={p.taskSlot}
+                  className="bg-black/30 rounded-lg p-3.5 border border-amber-500/10"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[12px] font-bold text-amber-400">{p.taskSlot}</span>
+                    <span
+                      className="text-[15px] font-extrabold"
+                      style={{ color: p.probability >= 95 ? '#ef4444' : '#f59e0b' }}
+                    >
+                      {p.probability}%
+                    </span>
+                  </div>
+                  <div className="text-[13px] font-semibold text-slate-200 mb-1.5">{p.topic}</div>
+                  <div className="h-1 bg-[#1e2d45] rounded-full mb-2">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${p.probability}%`,
+                        background: p.probability >= 95 ? '#ef4444' : '#f59e0b',
+                      }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">{p.reasoning}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

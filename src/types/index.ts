@@ -61,6 +61,8 @@ export interface ExerciseOption {
   text: string;
 }
 
+export type LegacyExerciseTrack = 'mini' | 'guided' | 'standard' | 'transfer' | 'examStyle';
+
 export interface Exercise {
   id: string;
   topicId: string;
@@ -69,6 +71,9 @@ export interface Exercise {
   operator: ExamOperator;
   question: string;
   type: ExerciseType;
+  /** Filter „Anfänger“ / Aufgabenpool */
+  track?: LegacyExerciseTrack;
+  subtopic?: string;
   // MC/SC
   options?: ExerciseOption[];
   correctOptions?: number[];
@@ -173,6 +178,7 @@ export interface MistakeEntry {
   feedback: string;
   timestamp: number;
   reviewed: boolean;
+  misconceptionIds?: string[];
 }
 
 export interface AppProgress {

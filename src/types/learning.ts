@@ -11,6 +11,8 @@ export type PracticeMode = 'free' | 'guided' | 'stepHints' | 'showSolution';
 
 export type DiagnosisLevel = 'beginner' | 'intermediate' | 'advanced';
 
+export type ExerciseTrack = 'mini' | 'guided' | 'standard' | 'transfer' | 'examStyle';
+
 export type MisconceptionId =
   | 'concept_not_understood'
   | 'recursion_base_missing'
@@ -58,6 +60,21 @@ export interface ConceptCheck {
   hint?: string;
 }
 
+export interface GuidedExerciseStep {
+  id: string;
+  prompt: string;
+  expectedType: 'mc' | 'shortText' | 'keywords';
+  /** Bei expectedType mc */
+  options?: string[];
+  correctOptionIndex?: number;
+  /** Bei shortText/keywords: mindestens einer muss (case-insensitiv) vorkommen */
+  keywordAccept?: string[];
+  feedbackWrong: string;
+  feedbackRight: string;
+  misconceptionOnFail?: MisconceptionId;
+  remediationGlossaryTermIds?: string[];
+}
+
 /** Neue Übungskarte (kann auf Legacy-Exercise verweisen oder inline MC) */
 export interface PathExercise {
   id: string;
@@ -65,9 +82,15 @@ export interface PathExercise {
   legacyExerciseId?: string;
   title: string;
   modes: PracticeMode[];
-  /** Für guided: Schritte als Text-Hinweise */
+  /** Aufgabenfamilie im Lernpfad */
+  track?: ExerciseTrack;
+  /** Für guided: Schritte als Text-Hinweise (ohne Auswertung) */
   guidedSteps?: string[];
+  /** Geführt mit sofortiger Auswertung pro Schritt */
+  guidedFlow?: GuidedExerciseStep[];
   misconceptionTags?: MisconceptionId[];
+  reviewAfterDays?: number;
+  remediationUnitId?: string;
   /** Falls kein Legacy-Eintrag gewünscht */
   inlineMc?: {
     question: string;
@@ -77,11 +100,16 @@ export interface PathExercise {
   };
 }
 
+export type BlockFocus = 'B1' | 'B2' | 'both';
+
 export interface PathStage {
   id: string;
   order: number;
   title: string;
   subtitle?: string;
+  description?: string;
+  learningGoals?: string[];
+  blockFocus?: BlockFocus;
   prerequisiteStageIds: string[];
   estimatedMinutes: number;
   difficulty: 1 | 2 | 3;
@@ -92,6 +120,11 @@ export interface PathUnit {
   id: string;
   stageId: string;
   title: string;
+  description?: string;
+  learningGoals?: string[];
+  /** Überschreibt aggregierte Stage-Dauer für diese Unit */
+  estimatedMinutes?: number;
+  prerequisiteUnitIds?: string[];
   tags: string[];
   vocabularyTermIds: string[];
   lesson: LessonContent;
@@ -99,12 +132,21 @@ export interface PathUnit {
   exercises: PathExercise[];
 }
 
+export interface GlossaryConfusion {
+  withTermId: string;
+  note: string;
+}
+
 export interface GlossaryEntry {
   id: string;
   term: string;
   shortDef: string;
   simpleExplanation: string;
+  formalDefinition?: string;
+  miniExample?: string;
   relatedUnitIds: string[];
+  relatedTermIds?: string[];
+  commonConfusions?: GlossaryConfusion[];
   officialRef?: string;
 }
 
@@ -113,6 +155,9 @@ export interface UnitProgressState {
   conceptCheckSolved: Record<string, boolean>;
   completed: boolean;
   lastTier?: ExplanationTier;
+  reviewDue?: boolean;
+  nextReviewAt?: number;
+  weakMisconceptionIds?: MisconceptionId[];
 }
 
 export interface DiagnosisState {
@@ -120,6 +165,8 @@ export interface DiagnosisState {
   level: DiagnosisLevel;
   answers: Record<string, number>;
   completedAt?: number;
+  recommendedStageId?: string;
+  recommendedUnitId?: string;
 }
 
 export interface LearningSettings {
@@ -127,6 +174,8 @@ export interface LearningSettings {
   onlyBasics: boolean;
   examModeUnlocked: boolean;
   skippedExamGate: boolean;
+  /** Standard aus: Fokus auf Lernen ohne Prüfungs-Countdown */
+  showExamCountdown: boolean;
 }
 
 export interface LearningProgress {

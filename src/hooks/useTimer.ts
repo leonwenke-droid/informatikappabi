@@ -35,6 +35,8 @@ export function useTimer(initialSeconds: number): UseTimerReturn {
       clear();
     }
     return clear;
+  // timeLeft bewusst nicht in deps — Intervall nutzt funktionale setState
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- siehe oben
   }, [isRunning]);
 
   const start = useCallback(() => setIsRunning(true), []);

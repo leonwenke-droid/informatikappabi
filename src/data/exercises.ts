@@ -18,6 +18,8 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'oop-01',
     topicId: 'oop',
+    track: 'mini',
+    subtopic: 'notation',
     difficulty: 1,
     points: 4,
     operator: 'bestimmen',
@@ -38,6 +40,8 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'oop-02',
     topicId: 'oop',
+    track: 'standard',
+    subtopic: 'klassendiagramm',
     difficulty: 2,
     points: 6,
     operator: 'entwerfen',
@@ -67,6 +71,7 @@ PKW ──▷ Fahrzeug  (leerer Dreieckspfeil, PKW erbt von Fahrzeug)`,
   {
     id: 'oop-03',
     topicId: 'oop',
+    track: 'transfer',
     difficulty: 2,
     points: 4,
     operator: 'erläutern',
@@ -88,6 +93,7 @@ Unterschied: Kapselung schützt Daten INNERHALB einer Klasse; Vererbung beschrei
   {
     id: 'bst-01',
     topicId: 'bst',
+    track: 'mini',
     difficulty: 1,
     points: 3,
     operator: 'bestimmen',
@@ -240,6 +246,8 @@ Merkhilfe: Signieren = PRIVATER Schlüssel des Senders (umgekehrt zur Verschlüs
   {
     id: 'db-01',
     topicId: 'db',
+    track: 'mini',
+    subtopic: 'sql_basis',
     difficulty: 2,
     points: 8,
     operator: 'implementieren',
@@ -303,6 +311,7 @@ Löschanomalie: Das Löschen eines Datensatzes vernichtet unbeabsichtigt andere 
   {
     id: 'db-04',
     topicId: 'db',
+    track: 'examStyle',
     difficulty: 3,
     points: 8,
     operator: 'implementieren',

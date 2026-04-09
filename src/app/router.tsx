@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { Layout } from '../components/layout/Layout';
+import { WithLayout } from '../components/layout/Layout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { OnboardingPage } from '../pages/OnboardingPage';
 import { LearnPathPage } from '../pages/LearnPathPage';
@@ -13,10 +13,7 @@ import { ExamAnalysisPage } from '../pages/ExamAnalysisPage';
 import { ExamModePage } from '../pages/ExamModePage';
 import { MistakesPage } from '../pages/MistakesPage';
 import { GlossaryPage } from '../pages/GlossaryPage';
-
-function WithLayout({ children }: { children: React.ReactNode }) {
-  return <Layout>{children}</Layout>;
-}
+import { FoundationsPage } from '../pages/FoundationsPage';
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +37,14 @@ export const router = createBrowserRouter([
     element: (
       <WithLayout>
         <LearnPathPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/grundlagen',
+    element: (
+      <WithLayout>
+        <FoundationsPage />
       </WithLayout>
     ),
   },

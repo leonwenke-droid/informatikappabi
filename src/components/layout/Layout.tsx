@@ -18,6 +18,10 @@ export function Layout({ children }: LayoutProps) {
   );
 }
 
+export function WithLayout({ children }: LayoutProps) {
+  return <Layout>{children}</Layout>;
+}
+
 interface PageHeaderProps {
   title: string;
   subtitle?: string;

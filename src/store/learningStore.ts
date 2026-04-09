@@ -6,15 +6,35 @@ import type {
   ExplanationTier,
   LearningProgress,
   LearningSettings,
+  MisconceptionId,
   UnitProgressState,
 } from '../types/learning';
+import { getUnit } from '../content/path/units';
+import { migratePersistedLearning } from '../lib/path/migrateLearningStorage';
+import { nextReviewTimestampFromDays } from '../lib/path/unitReview';
 
 const defaultSettings: LearningSettings = {
   pace: 'normal',
   onlyBasics: false,
   examModeUnlocked: false,
   skippedExamGate: false,
+  showExamCountdown: false,
 };
+
+function defaultReviewDaysForUnit(unitId: string): number {
+  const u = getUnit(unitId);
+  if (!u?.exercises?.length) return 7;
+  const ds = u.exercises.map((e) => e.reviewAfterDays).filter((d): d is number => typeof d === 'number');
+  return ds.length > 0 ? Math.min(...ds) : 7;
+}
+
+function reviewFieldsOnFirstComplete(unitId: string, wasComplete: boolean, nowComplete: boolean) {
+  if (wasComplete || !nowComplete) return {};
+  return {
+    nextReviewAt: nextReviewTimestampFromDays(defaultReviewDaysForUnit(unitId)),
+    reviewDue: false as const,
+  };
+}
 
 const defaultDiagnosis: DiagnosisState = {
   completed: false,
@@ -51,6 +71,7 @@ interface LearningState extends LearningProgress {
   skipExamGate: () => void;
   getUnitProgress: (unitId: string) => UnitProgressState;
   resetLearning: () => void;
+  mergeUnitWeakMisconceptions: (unitId: string, ids: MisconceptionId[]) => void;
 }
 
 const initial: LearningProgress = {
@@ -124,6 +145,7 @@ export const useLearningStore = create<LearningState>()(
       recordConceptCheckResult: (unitId, checkId, success, checklistKeys, conceptCheckIds) =>
         set((s) => {
           const prev = s.unitProgress[unitId] ?? emptyUnitProgress();
+          const wasComplete = prev.completed;
           const conceptCheckSolved = success
             ? { ...prev.conceptCheckSolved, [checkId]: true }
             : prev.conceptCheckSolved;
@@ -131,10 +153,11 @@ export const useLearningStore = create<LearningState>()(
           const allCheck = checklistKeys.every((k) => merged.checklist[k]);
           const allCc = conceptCheckIds.every((id) => merged.conceptCheckSolved[id]);
           const completed = allCheck && allCc;
+          const review = reviewFieldsOnFirstComplete(unitId, wasComplete, completed);
           return {
             unitProgress: {
               ...s.unitProgress,
-              [unitId]: { ...merged, completed },
+              [unitId]: { ...merged, completed, ...review },
             },
             lastUnitId: unitId,
           };
@@ -143,13 +166,15 @@ export const useLearningStore = create<LearningState>()(
       tryCompleteUnit: (unitId, checklistKeys, conceptCheckIds) =>
         set((s) => {
           const prev = s.unitProgress[unitId] ?? emptyUnitProgress();
+          const wasComplete = prev.completed;
           const allCheck = checklistKeys.every((k) => prev.checklist[k]);
           const allCc = conceptCheckIds.every((id) => prev.conceptCheckSolved[id]);
           const completed = allCheck && (conceptCheckIds.length === 0 || allCc);
+          const review = reviewFieldsOnFirstComplete(unitId, wasComplete, completed);
           return {
             unitProgress: {
               ...s.unitProgress,
-              [unitId]: { ...prev, completed },
+              [unitId]: { ...prev, completed, ...review },
             },
           };
         }),
@@ -170,10 +195,24 @@ export const useLearningStore = create<LearningState>()(
 
       getUnitProgress: (unitId) => get().unitProgress[unitId] ?? emptyUnitProgress(),
 
+      mergeUnitWeakMisconceptions: (unitId, ids) =>
+        set((s) => {
+          const prev = s.unitProgress[unitId] ?? emptyUnitProgress();
+          const merged = new Set([...(prev.weakMisconceptionIds ?? []), ...ids]);
+          return {
+            unitProgress: {
+              ...s.unitProgress,
+              [unitId]: { ...prev, weakMisconceptionIds: [...merged] },
+            },
+          };
+        }),
+
       resetLearning: () => set({ ...initial }),
     }),
     {
       name: 'infoabi-learning-v2',
+      version: 2,
+      migrate: (persisted) => migratePersistedLearning(persisted),
       storage: createJSONStorage(() => localStorage),
     }
   )

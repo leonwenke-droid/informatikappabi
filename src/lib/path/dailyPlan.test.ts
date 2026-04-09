@@ -21,4 +21,15 @@ describe('dailyPlan', () => {
     });
     expect(items.some((i) => i.kind === 'learn_new')).toBe(true);
   });
+
+  it('buildDailyPlan includes unit_review when suggested', () => {
+    const items = buildDailyPlan({
+      stages,
+      unitProgress: {} as never,
+      dueReviewExerciseCount: 0,
+      todayKey: '2026-01-01',
+      unitReviewSuggestions: [{ stageId: 'a', unitId: 'u1', title: 'Wiederholen' }],
+    });
+    expect(items.some((i) => i.kind === 'unit_review')).toBe(true);
+  });
 });

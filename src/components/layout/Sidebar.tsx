@@ -11,12 +11,15 @@ import {
   GraduationCap,
   ListTree,
   BookMarked,
+  Layers,
 } from 'lucide-react';
 import { getDaysUntilExam, getExamCountdownColor } from '../../utils/countdown';
+import { useLearningStore } from '../../store/learningStore';
 
 const PRIMARY_NAV = [
   { path: '/', icon: LayoutDashboard, label: 'Start' },
   { path: '/lernpfad', icon: ListTree, label: 'Von Grund auf' },
+  { path: '/grundlagen', icon: Layers, label: 'Grundlagen' },
   { path: '/themen', icon: BookOpen, label: 'Themenübersicht' },
   { path: '/ueben', icon: PenTool, label: 'Geführte Übungen' },
   { path: '/uebungspool', icon: PenTool, label: 'Aufgabenpool' },
@@ -33,6 +36,7 @@ const SECONDARY_NAV = [
 
 export function Sidebar() {
   const location = useLocation();
+  const showExamCountdown = useLearningStore((s) => s.settings.showExamCountdown);
   const days = getDaysUntilExam();
   const countdownColor = getExamCountdownColor(days);
 
@@ -56,14 +60,16 @@ export function Sidebar() {
         <p className="text-[11px] text-slate-600 pl-[28px]">Niedersachsen · eA</p>
       </div>
 
-      <div className="mx-3 mt-3 px-3 py-2.5 rounded-lg bg-[#060a14] border border-[#1e2d45]">
-        <div className="flex items-baseline gap-2">
-          <span className="font-mono font-extrabold text-[24px] leading-none" style={{ color: countdownColor }}>
-            {days}
-          </span>
-          <span className="text-[11px] text-slate-500">Tage bis 14.05.2026</span>
+      {showExamCountdown && (
+        <div className="mx-3 mt-3 px-3 py-2.5 rounded-lg bg-[#060a14] border border-[#1e2d45]">
+          <div className="flex items-baseline gap-2">
+            <span className="font-mono font-extrabold text-[24px] leading-none" style={{ color: countdownColor }}>
+              {days}
+            </span>
+            <span className="text-[11px] text-slate-500">Tage bis 14.05.2026</span>
+          </div>
         </div>
-      </div>
+      )}
 
       <nav className="flex-1 py-3 px-1.5 overflow-y-auto">
         <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider px-3 mb-1">Lernen</div>
@@ -92,7 +98,7 @@ export function Sidebar() {
         <p className="text-[10px] text-slate-700 leading-relaxed">
           Inhalte: KC 2017, Ergänzende Hinweise 2021, Hinweise 2026; Muster aus eA 2021–2025.
         </p>
-        <p className="text-[10px] text-amber-800 mt-1 font-semibold">Prognosen ≠ offizielle Vorgaben</p>
+        <p className="text-[10px] text-slate-600 mt-1">Wahrscheinlichkeitsangaben nur unter „Prüfungsanalyse“.</p>
       </div>
     </aside>
   );

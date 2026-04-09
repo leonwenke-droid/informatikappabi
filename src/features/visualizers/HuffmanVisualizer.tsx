@@ -15,7 +15,7 @@ function buildHuffmanTree(text: string): HuffNode | null {
   const freq: Record<string, number> = {};
   for (const c of text) freq[c] = (freq[c] ?? 0) + 1;
 
-  let nodes: HuffNode[] = Object.entries(freq).map(([char, f]) => ({ char, freq: f }));
+  const nodes: HuffNode[] = Object.entries(freq).map(([char, f]) => ({ char, freq: f }));
   nodes.sort((a, b) => a.freq - b.freq || (a.char ?? '').localeCompare(b.char ?? ''));
 
   while (nodes.length > 1) {
@@ -89,7 +89,7 @@ function buildSteps(text: string): BuildStep[] {
   const freq: Record<string, number> = {};
   for (const c of text) freq[c] = (freq[c] ?? 0) + 1;
 
-  let nodes: HuffNode[] = Object.entries(freq)
+  const nodes: HuffNode[] = Object.entries(freq)
     .map(([char, f]) => ({ char, freq: f }))
     .sort((a, b) => a.freq - b.freq || (a.char ?? '').localeCompare(b.char ?? ''));
 

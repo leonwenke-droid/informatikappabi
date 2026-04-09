@@ -1,4 +1,4 @@
-import type { PathStage } from '../../types/learning';
+import type { PathStage, PathUnit } from '../../types/learning';
 
 /** Etappe gilt als abgeschlossen, wenn alle Units completed */
 export function isStageComplete(
@@ -59,4 +59,19 @@ export function examModeDefaultUnlocked(
   const sorted = [...stages].sort((a, b) => a.order - b.order);
   const head = sorted.slice(0, firstNStages);
   return head.every((s) => isStageComplete(s, unitProgress));
+}
+
+/** Unit sichtbar, wenn Etappe frei und alle prerequisiteUnitIds abgeschlossen. */
+export function isUnitAccessible(
+  unit: PathUnit,
+  stages: PathStage[],
+  completedStageIds: Set<string>,
+  unitProgress: Record<string, { completed: boolean }>
+): boolean {
+  const stage = stages.find((s) => s.id === unit.stageId);
+  if (!stage) return false;
+  if (!isStageUnlocked(stage, completedStageIds)) return false;
+  const pre = unit.prerequisiteUnitIds;
+  if (!pre?.length) return true;
+  return pre.every((id) => unitProgress[id]?.completed);
 }

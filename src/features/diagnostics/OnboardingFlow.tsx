@@ -86,6 +86,12 @@ export function OnboardingFlow() {
     if (step < QUESTIONS.length - 1) setStep(step + 1);
     else {
       const level = scoreLevel(next);
+      const route =
+        level === 'advanced'
+          ? { stageId: 's05', unitId: 's05-u01' }
+          : level === 'intermediate'
+            ? { stageId: 's02a', unitId: 's02a-u01' }
+            : { stageId: 's01', unitId: 's01-u01' };
       useLearningStore.setState((s) => ({
         diagnosis: {
           ...s.diagnosis,
@@ -93,20 +99,22 @@ export function OnboardingFlow() {
           level,
           completed: true,
           completedAt: Date.now(),
+          recommendedStageId: route.stageId,
+          recommendedUnitId: route.unitId,
         },
         onboardingComplete: true,
       }));
       if (level === 'beginner') {
         setSettings({ pace: 'slow', onlyBasics: true });
       }
-      navigate('/lernen/s01/s01-u01');
+      navigate(`/lernen/${route.stageId}/${route.unitId}`);
     }
   };
 
   return (
     <div className="max-w-lg mx-auto">
       <Card className="p-6">
-        <p className="text-xs text-slate-500 mb-1">Startdiagnose · Frage {step + 1} / {QUESTIONS.length}</p>
+        <p className="text-xs text-slate-500 mb-1">Startdiagnose · Frage {step + 1} / {QUESTIONS.length} · ohne Zeitdruck</p>
         <h2 className="text-lg font-bold text-slate-100 mb-4">{q.text}</h2>
         <div className="space-y-2">
           {q.options.map((opt, i) => (

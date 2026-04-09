@@ -63,9 +63,6 @@ function makeStubUnit(id: string, stageId: string, title: string): PathUnit {
 }
 
 export const STUB_UNITS: PathUnit[] = [
-  makeStubUnit('s02-u01', 's02', 'Variablen, Zuweisung, If/Schleife'),
-  makeStubUnit('s03-u01', 's03', 'Algorithmen lesen und Traces'),
-  makeStubUnit('s04-u01', 's04', 'Statische Reihungen'),
   makeStubUnit('s05-u01', 's05', 'Rekursion verstehen'),
   makeStubUnit('s06-u01', 's06', 'DynArray, Stack, Queue'),
   makeStubUnit('s07-u01', 's07', 'Klassen, Vererbung, Diagramme'),

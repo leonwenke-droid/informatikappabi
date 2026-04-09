@@ -5,6 +5,8 @@ import { Button } from '../../components/ui/Button';
 import { useProgressStore } from '../../store/progressStore';
 import { TOPICS } from '../../data/topics';
 import type { MistakeEntry } from '../../types';
+import { MISCONCEPTION_CATALOG } from '../../lib/errors/taxonomy';
+import { Link } from 'react-router-dom';
 
 export function MistakeLog() {
   const { mistakes, markMistakeReviewed, deleteMistake } = useProgressStore();
@@ -169,6 +171,25 @@ function MistakeCard({ mistake, topic, isExpanded, onToggle, onMarkReviewed, onD
               <div className="bg-emerald-500/[0.05] border border-emerald-500/20 rounded-lg p-3 text-[12.5px] text-emerald-200/80 font-mono whitespace-pre-wrap">
                 {mistake.modelAnswer}
               </div>
+            </div>
+          )}
+          {mistake.misconceptionIds && mistake.misconceptionIds.length > 0 && (
+            <div className="rounded-lg border border-amber-500/25 bg-amber-950/15 p-3">
+              <div className="text-[11px] font-bold text-amber-400 mb-2">Typische Fehlvorstellung (automatisch erkannt)</div>
+              <ul className="text-[12px] text-slate-300 space-y-2">
+                {mistake.misconceptionIds.map((id) => {
+                  const info = MISCONCEPTION_CATALOG[id as keyof typeof MISCONCEPTION_CATALOG];
+                  if (!info) return <li key={id}>{id}</li>;
+                  return (
+                    <li key={id}>
+                      <strong className="text-slate-200">{info.label}:</strong> {info.remediationHint}
+                    </li>
+                  );
+                })}
+              </ul>
+              <Link to="/glossar" className="text-[11px] text-blue-400 underline mt-2 inline-block">
+                Begriffe im Glossar nachlesen
+              </Link>
             </div>
           )}
           <div className="flex gap-2">

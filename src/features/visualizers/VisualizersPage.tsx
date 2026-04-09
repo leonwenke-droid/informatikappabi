@@ -9,12 +9,20 @@ import { DataStructuresVisualizer } from './DataStructuresVisualizer';
 import { PDAVisualizer } from './PDAVisualizer';
 import { GrammarSimulator } from './GrammarSimulator';
 import { VisualizerFrame } from '../visualizer/VisualizerFrame';
+import { RecursionVisualizer } from './RecursionVisualizer';
+import { SQLFlowVisualizer } from './SQLFlowVisualizer';
+import { ERRelationalVisualizer } from './ERRelationalVisualizer';
+import { MealyVisualizer } from './MealyVisualizer';
 
 const TABS = [
   { id: 'bst', label: 'BST', icon: '🌲' },
+  { id: 'rekursion', label: 'Rekursion', icon: '🔂' },
   { id: 'huffman', label: 'Huffman', icon: '📊' },
   { id: 'hamming', label: 'Hamming', icon: '🔢' },
+  { id: 'sqlfluss', label: 'SQL-Ablauf', icon: '📑' },
+  { id: 'errel', label: 'ER→Tabellen', icon: '🔗' },
   { id: 'dea', label: 'DEA', icon: '⚙' },
+  { id: 'mealy', label: 'Mealy', icon: '🔌' },
   { id: 'datenstrukturen', label: 'Stack/Queue', icon: '📚' },
   { id: 'pda', label: 'Kellerautomat', icon: '🔁' },
   { id: 'grammatik', label: 'Grammatik', icon: '📝' },
@@ -41,6 +49,11 @@ export function VisualizersPage() {
           <BSTVisualizer />
         </VisualizerFrame>
       )}
+      {activeTab === 'rekursion' && (
+        <VisualizerFrame title="Rekursion" typicalError="Basisfall vergessen oder Abbruch nicht erreichbar.">
+          <RecursionVisualizer />
+        </VisualizerFrame>
+      )}
       {activeTab === 'huffman' && (
         <VisualizerFrame title="Huffman" typicalError="Häufigkeit zuerst zählen; seltenste Knoten zuerst zusammenfügen.">
           <HuffmanVisualizer />
@@ -51,9 +64,24 @@ export function VisualizersPage() {
           <HammingVisualizer />
         </VisualizerFrame>
       )}
+      {activeTab === 'sqlfluss' && (
+        <VisualizerFrame title="SQL" typicalError="WHERE vs. HAVING: Zeilen vs. Gruppen filtern.">
+          <SQLFlowVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'errel' && (
+        <VisualizerFrame title="ER → relational" typicalError="n:m braucht oft eigene Verknüpfungstabelle.">
+          <ERRelationalVisualizer />
+        </VisualizerFrame>
+      )}
       {activeTab === 'dea' && (
         <VisualizerFrame title="DEA" typicalError="Zustand + gelesenes Zeichen bestimmen den Übergang eindeutig.">
           <DEAVisualizer />
+        </VisualizerFrame>
+      )}
+      {activeTab === 'mealy' && (
+        <VisualizerFrame title="Mealy" typicalError="Ausgabe am Übergang lesen, nicht nur im Zustand raten.">
+          <MealyVisualizer />
         </VisualizerFrame>
       )}
       {activeTab === 'datenstrukturen' && (

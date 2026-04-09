@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/layout/Layout';
 import { Card, AlertBox } from '../../components/ui/Card';
@@ -11,42 +11,65 @@ import { evaluateExercise } from '../../lib/evaluator/localEvaluator';
 import type { EvaluationResult, Exercise } from '../../types';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 
-type FilterTopic = 'all' | 'review' | string;
+type FilterTopic = 'all' | 'review' | 'beginner' | 'no_exam' | string;
 
 export function ExercisesPage() {
   const [searchParams] = useSearchParams();
   const topicFilter = searchParams.get('topic') ?? 'all';
   const reviewMode = searchParams.get('review') === '1';
+  const poolFilter = searchParams.get('filter');
   const targetExerciseId = searchParams.get('exercise');
 
-  const [filter, setFilter] = useState<FilterTopic>(reviewMode ? 'review' : topicFilter);
+  const [filter, setFilter] = useState<FilterTopic>(() => {
+    if (reviewMode) return 'review';
+    if (poolFilter === 'beginner' || poolFilter === 'no_exam') return poolFilter;
+    return topicFilter;
+  });
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
   const [mcSelected, setMcSelected] = useState<number[]>([]);
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [isChecking, setIsChecking] = useState(false);
 
-  const { recordExerciseResult, addMistake, getTopicProgress, getDueForReview } = useProgressStore();
+  const { recordExerciseResult, addMistake, getTopicProgress } = useProgressStore();
 
-  const dueResults = getDueForReview();
-  const dueIds = new Set(dueResults.map((r) => r.exerciseId));
+  const dueExerciseIds = useProgressStore((s) => {
+    const now = Date.now();
+    return s.exerciseResults
+      .filter((r) => r.nextReviewAt !== undefined && r.nextReviewAt <= now)
+      .map((r) => r.exerciseId)
+      .sort()
+      .join(',');
+  });
+  const dueIds = useMemo(
+    () => new Set(dueExerciseIds ? dueExerciseIds.split(',').filter(Boolean) : []),
+    [dueExerciseIds]
+  );
 
-  const filteredExercises =
-    filter === 'review'
-      ? EXERCISES.filter((e) => dueIds.has(e.id))
-      : filter === 'all'
-      ? EXERCISES
-      : EXERCISES.filter((e) => e.topicId === filter);
+  const filteredExercises = useMemo(() => {
+    if (filter === 'review') return EXERCISES.filter((e) => dueIds.has(e.id));
+    if (filter === 'beginner') {
+      return EXERCISES.filter((e) => e.track === 'mini' || (!e.track && e.difficulty === 1));
+    }
+    if (filter === 'no_exam') {
+      return EXERCISES.filter((e) => e.track !== 'examStyle' && e.difficulty < 3);
+    }
+    if (filter === 'all') return EXERCISES;
+    return EXERCISES.filter((e) => e.topicId === filter);
+  }, [filter, dueIds]);
 
   const exercise = filteredExercises[idx] ?? filteredExercises[0];
   const topic = exercise ? TOPICS.find((t) => t.id === exercise.topicId) : null;
 
   useEffect(() => {
-    if (targetExerciseId) {
-      const idx = filteredExercises.findIndex((e) => e.id === targetExerciseId);
-      if (idx >= 0) setIdx(idx);
+    if (!targetExerciseId) return;
+    const i = filteredExercises.findIndex((e) => e.id === targetExerciseId);
+    if (i >= 0) {
+      // Deep-Link ?exercise= auf Index im gefilterten Pool
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIdx(i);
     }
-  }, [targetExerciseId]);
+  }, [targetExerciseId, filteredExercises]);
 
   const reset = () => {
     setAnswer('');
@@ -90,6 +113,7 @@ export function ExercisesPage() {
         modelAnswer: exercise.modelAnswer ?? '',
         feedback: evalResult.feedback,
         reviewed: false,
+        misconceptionIds: evalResult.misconceptionIds,
       });
     }
 
@@ -135,6 +159,20 @@ export function ExercisesPage() {
               {dueIds.size}
             </span>
           )}
+        </Button>
+        <Button
+          variant={filter === 'beginner' ? 'primary' : 'secondary'}
+          size="sm"
+          onClick={() => { setFilter('beginner'); setIdx(0); reset(); }}
+        >
+          Nur Mini / Einstieg
+        </Button>
+        <Button
+          variant={filter === 'no_exam' ? 'primary' : 'secondary'}
+          size="sm"
+          onClick={() => { setFilter('no_exam'); setIdx(0); reset(); }}
+        >
+          Ohne klausurnah
         </Button>
         {TOPICS.map((t) => {
           const count = EXERCISES.filter((e) => e.topicId === t.id).length;

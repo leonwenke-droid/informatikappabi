@@ -40,7 +40,7 @@ export function DEAVisualizer() {
   const [input, setInput] = useState('101001');
   const [currentStep, setCurrentStep] = useState(-1);
   const [stepHistory, setStepHistory] = useState<string[]>([]);
-  const [_running, setRunning] = useState(false);
+  const [, setRunning] = useState(false);
 
   const dea = EXAMPLE_DEA;
 

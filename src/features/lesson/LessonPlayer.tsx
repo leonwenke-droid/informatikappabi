@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import type { PathUnit, ExplanationTier } from '../../types/learning';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -171,8 +172,10 @@ export function LessonPlayer({ unit }: LessonPlayerProps) {
                 if (!g) return null;
                 return (
                   <li key={tid}>
-                    <span className="text-blue-300 font-medium">{g.term}:</span>{' '}
-                    <span className="text-slate-400">{g.shortDef}</span>
+                    <Link to={`/glossar#${tid}`} className="text-blue-300 font-medium hover:underline">
+                      {g.term}
+                    </Link>
+                    <span className="text-slate-400">: {g.shortDef}</span>
                   </li>
                 );
               })}
