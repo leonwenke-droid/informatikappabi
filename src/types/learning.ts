@@ -1,3 +1,5 @@
+import type { CompetencyProfile } from './competency';
+
 /**
  * Lernpfad- und Lektionsmodell (Neuaufbau Anfänger-first).
  * Quellen-Tags: official | examPattern2021_2025 | didactic
@@ -178,11 +180,20 @@ export interface LearningSettings {
   showExamCountdown: boolean;
 }
 
+export interface LabProgressState {
+  sqlTaskDone?: Record<string, boolean>;
+  codeTaskDone?: Record<string, boolean>;
+}
+
 export interface LearningProgress {
   onboardingComplete: boolean;
   diagnosis: DiagnosisState;
   settings: LearningSettings;
   unitProgress: Record<string, UnitProgressState>;
+  /** Skills / Mastery (Kompetenzmodell) */
+  competencyProfile: CompetencyProfile;
+  /** Interaktive Labore (SQL/Code) */
+  labProgress: LabProgressState;
   dailyPlanDate: string | null;
   lastUnitId?: string;
 }

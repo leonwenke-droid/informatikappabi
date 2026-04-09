@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/layout/Layout';
 import { Card } from '../../components/ui/Card';
-import { PriorityBadge, BlockTag, SourceBadge } from '../../components/ui/Badge';
+import { BlockTag, SourceBadge } from '../../components/ui/Badge';
 import { TabBar } from '../../components/ui/TabBar';
 import { CodeBlock } from '../../components/ui/CodeBlock';
 import { Button } from '../../components/ui/Button';
@@ -192,7 +192,6 @@ export function TopicsPage() {
               <div className="border border-blue-500/20 bg-blue-500/[0.05] rounded-xl p-5 mb-4">
                 <div className="text-[13px] font-bold text-blue-300 mb-3 flex flex-wrap items-center gap-2">
                   📋 Klausurmuster aus 2021–2025 <span className="text-blue-500/60">(abgeleitet, keine offizielle Vorgabe)</span>
-                  <PriorityBadge priority={activeTopic.priority} />
                 </div>
                 <p className="text-[13.5px] text-blue-200/80 leading-relaxed">{activeTopic.examPattern}</p>
               </div>

@@ -12,6 +12,10 @@ import type {
 import { getUnit } from '../content/path/units';
 import { migratePersistedLearning } from '../lib/path/migrateLearningStorage';
 import { nextReviewTimestampFromDays } from '../lib/path/unitReview';
+import type { SkillId } from '../types/competency';
+import { STAGE_TO_SKILLS } from '../lib/competency/skillCatalog';
+import { resolveSkillIdsForUnit } from '../lib/competency/practiceSkills';
+import { applyConceptCheckSuccess, applyExerciseToSkills, seedProfileFromDiagnosis } from '../lib/competency/updateSkills';
 
 const defaultSettings: LearningSettings = {
   pace: 'normal',
@@ -72,6 +76,10 @@ interface LearningState extends LearningProgress {
   getUnitProgress: (unitId: string) => UnitProgressState;
   resetLearning: () => void;
   mergeUnitWeakMisconceptions: (unitId: string, ids: MisconceptionId[]) => void;
+  recordExerciseCompetency: (unitId: string, legacyTopicId: string | undefined, scoreRatio: number) => void;
+  applyCompetencySkills: (skillIds: SkillId[], scoreRatio: number) => void;
+  markSqlLabTaskDone: (taskId: string) => void;
+  markCodeLabTaskDone: (taskId: string) => void;
 }
 
 const initial: LearningProgress = {
@@ -79,6 +87,8 @@ const initial: LearningProgress = {
   diagnosis: defaultDiagnosis,
   settings: defaultSettings,
   unitProgress: {},
+  competencyProfile: {},
+  labProgress: {},
   dailyPlanDate: null,
   lastUnitId: undefined,
 };
@@ -104,6 +114,7 @@ export const useLearningStore = create<LearningState>()(
             completedAt: Date.now(),
           },
           onboardingComplete: true,
+          competencyProfile: seedProfileFromDiagnosis(s.competencyProfile ?? {}, level),
         })),
 
       setSettings: (partial) =>
@@ -146,6 +157,7 @@ export const useLearningStore = create<LearningState>()(
         set((s) => {
           const prev = s.unitProgress[unitId] ?? emptyUnitProgress();
           const wasComplete = prev.completed;
+          const firstSuccess = success && !prev.conceptCheckSolved[checkId];
           const conceptCheckSolved = success
             ? { ...prev.conceptCheckSolved, [checkId]: true }
             : prev.conceptCheckSolved;
@@ -154,12 +166,20 @@ export const useLearningStore = create<LearningState>()(
           const allCc = conceptCheckIds.every((id) => merged.conceptCheckSolved[id]);
           const completed = allCheck && allCc;
           const review = reviewFieldsOnFirstComplete(unitId, wasComplete, completed);
+          const u = getUnit(unitId);
+          const ccSkills: SkillId[] = u
+            ? (STAGE_TO_SKILLS[u.stageId] ?? (['algo_basics'] as SkillId[]))
+            : (['algo_basics'] as SkillId[]);
+          const competencyProfile = firstSuccess
+            ? applyConceptCheckSuccess(s.competencyProfile ?? {}, ccSkills)
+            : s.competencyProfile ?? {};
           return {
             unitProgress: {
               ...s.unitProgress,
               [unitId]: { ...merged, completed, ...review },
             },
             lastUnitId: unitId,
+            competencyProfile,
           };
         }),
 
@@ -207,11 +227,41 @@ export const useLearningStore = create<LearningState>()(
           };
         }),
 
+      recordExerciseCompetency: (unitId, legacyTopicId, scoreRatio) =>
+        set((s) => {
+          const ids = resolveSkillIdsForUnit(unitId, legacyTopicId);
+          if (ids.length === 0) return {};
+          return {
+            competencyProfile: applyExerciseToSkills(s.competencyProfile ?? {}, ids, scoreRatio),
+          };
+        }),
+
+      applyCompetencySkills: (skillIds, scoreRatio) =>
+        set((s) => ({
+          competencyProfile: applyExerciseToSkills(s.competencyProfile ?? {}, skillIds, scoreRatio),
+        })),
+
+      markSqlLabTaskDone: (taskId) =>
+        set((s) => ({
+          labProgress: {
+            ...s.labProgress,
+            sqlTaskDone: { ...s.labProgress.sqlTaskDone, [taskId]: true },
+          },
+        })),
+
+      markCodeLabTaskDone: (taskId) =>
+        set((s) => ({
+          labProgress: {
+            ...s.labProgress,
+            codeTaskDone: { ...s.labProgress.codeTaskDone, [taskId]: true },
+          },
+        })),
+
       resetLearning: () => set({ ...initial }),
     }),
     {
       name: 'infoabi-learning-v2',
-      version: 2,
+      version: 3,
       migrate: (persisted) => migratePersistedLearning(persisted),
       storage: createJSONStorage(() => localStorage),
     }

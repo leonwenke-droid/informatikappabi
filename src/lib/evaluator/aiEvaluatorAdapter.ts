@@ -1,4 +1,23 @@
-import type { AIEvaluatorAdapter, EvaluationResult, EvaluationRequest } from '../../types';
+import type {
+  AIEvaluatorAdapter,
+  AiRubricDetail,
+  EvaluationResult,
+  EvaluationRequest,
+} from '../../types';
+import { getEvaluateUrl } from './evalApiUrl';
+
+/** Wenn Vite den Proxy nicht zum Eval-Server (127.0.0.1:8787) durchreichen kann. */
+function evalUpstreamDevHint(errorMessage: string): string {
+  const m = errorMessage.toLowerCase();
+  const httpUpstreamFail = /\b50[0-4]\b|http\s*50[0-4]/.test(m);
+  const networkFail =
+    m.includes('failed to fetch') || m.includes('networkerror') || m.includes('load failed');
+  if (!httpUpstreamFail && !networkFail) return '';
+  return (
+    '\n\nHinweis: Der Bewertungs-Server (Standard-Port 8787) läuft vermutlich nicht. ' +
+    'Zweites Terminal: npm run dev:api — oder: npm run dev:all. OPENAI_API_KEY in .env im Projektroot setzen.'
+  );
+}
 
 /**
  * AI EVALUATOR ADAPTER
@@ -45,7 +64,9 @@ export class NullAIAdapter {
  */
 export class BackendAPIAdapter {
   private apiUrl: string;
-  constructor(apiUrl: string) { this.apiUrl = apiUrl; }
+  constructor(apiUrl?: string) {
+    this.apiUrl = apiUrl ?? getEvaluateUrl();
+  }
 
   isAvailable(): boolean {
     return !!this.apiUrl;
@@ -60,22 +81,34 @@ export class BackendAPIAdapter {
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errBody = await response.json().catch(() => ({}));
+        const msg = (errBody as { error?: string }).error ?? `HTTP ${response.status}`;
+        throw new Error(msg);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        score?: number;
+        maxScore?: number;
+        feedback?: string;
+        tip?: string;
+        source?: string;
+        aiRubric?: AiRubricDetail;
+      };
       return {
         score: data.score ?? 0,
-        maxScore: req.maxPoints,
+        maxScore: data.maxScore ?? req.maxPoints,
         feedback: data.feedback ?? 'Kein Feedback erhalten.',
         tip: data.tip,
         source: 'ai',
+        aiRubric: data.aiRubric,
       };
     } catch (error) {
+      const errMsg = (error as Error).message;
+      const hint = evalUpstreamDevHint(errMsg);
       return {
         score: 0,
         maxScore: req.maxPoints,
-        feedback: `KI-Bewertung fehlgeschlagen: ${(error as Error).message}. Bitte manuelle Bewertung.`,
+        feedback: `KI-Bewertung fehlgeschlagen: ${errMsg}${hint}\n— Nutze die lokale Bewertung.`,
         source: 'local',
       };
     }

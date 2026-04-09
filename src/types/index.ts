@@ -216,6 +216,18 @@ export interface EvaluationRequest {
   maxPoints: number;
 }
 
+/** Strukturierte KI-Rückmeldung (vom Eval-Server) */
+export interface AiRubricDetail {
+  overallVerdict: string;
+  factualCorrectness: string;
+  operatorFit: string;
+  strengths: string[];
+  weaknesses: string[];
+  improvementHint: string;
+  sampleFormulation?: string;
+  estimatedPoints?: number;
+}
+
 export interface EvaluationResult {
   score: number;
   maxScore: number;
@@ -223,6 +235,7 @@ export interface EvaluationResult {
   tip?: string;
   source: 'local' | 'ai';
   misconceptionIds?: MisconceptionId[];
+  aiRubric?: AiRubricDetail;
 }
 
 export interface AIEvaluatorAdapter {

@@ -27,6 +27,7 @@ export function PracticeSession({ exercise, initialMode = 'free' }: PracticeSess
   const [result, setResult] = useState<EvaluationResult | null>(null);
 
   const mergeWeak = useLearningStore((s) => s.mergeUnitWeakMisconceptions);
+  const recordExerciseCompetency = useLearningStore((s) => s.recordExerciseCompetency);
 
   const legacy = useMemo(
     () => (exercise.legacyExerciseId ? getExerciseById(exercise.legacyExerciseId) : undefined),
@@ -41,18 +42,29 @@ export function PracticeSession({ exercise, initialMode = 'free' }: PracticeSess
   const handleCheck = () => {
     if (exercise.inlineMc) {
       const ok = mcSel === exercise.inlineMc.correctIndex;
-      setResult({
+      const evalResult = {
         score: ok ? 1 : 0,
         maxScore: 1,
         feedback: ok ? 'Richtig!' : exercise.inlineMc.explanation,
-        source: 'local',
+        source: 'local' as const,
         misconceptionIds: ok ? undefined : exercise.misconceptionTags,
-      });
+      };
+      setResult(evalResult);
+      recordExerciseCompetency(
+        exercise.unitId,
+        undefined,
+        evalResult.maxScore > 0 ? evalResult.score / evalResult.maxScore : 0
+      );
       return;
     }
     if (legacy && (legacy.type === 'mc' || legacy.type === 'sc')) {
       const evalResult = evaluateExercise(legacy, '', mcSel !== null ? [mcSel as number] : []);
       setResult(evalResult);
+      recordExerciseCompetency(
+        exercise.unitId,
+        legacy.topicId,
+        evalResult.maxScore > 0 ? evalResult.score / evalResult.maxScore : 0
+      );
     }
   };
 

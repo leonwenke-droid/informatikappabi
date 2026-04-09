@@ -9,6 +9,9 @@ import { PracticeHubPage } from '../pages/PracticeHubPage';
 import { LegacyExercisesPage } from '../pages/LegacyExercisesPage';
 import { VisualizersPage } from '../pages/VisualizersPage';
 import { SQLReference } from '../features/sql/SQLReference';
+import { SqlLabPage } from '../features/sql-lab/SqlLabPage';
+import { CodeLabPage } from '../features/code-lab/CodeLabPage';
+import { AnswerTrainingPage } from '../features/answer-training/AnswerTrainingPage';
 import { ExamAnalysisPage } from '../pages/ExamAnalysisPage';
 import { ExamModePage } from '../pages/ExamModePage';
 import { MistakesPage } from '../pages/MistakesPage';
@@ -101,6 +104,30 @@ export const router = createBrowserRouter([
     element: (
       <WithLayout>
         <SQLReference />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/sql-lab',
+    element: (
+      <WithLayout>
+        <SqlLabPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/code-lab',
+    element: (
+      <WithLayout>
+        <CodeLabPage />
+      </WithLayout>
+    ),
+  },
+  {
+    path: '/formulierung',
+    element: (
+      <WithLayout>
+        <AnswerTrainingPage />
       </WithLayout>
     ),
   },

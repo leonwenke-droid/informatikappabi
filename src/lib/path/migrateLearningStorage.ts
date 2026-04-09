@@ -1,3 +1,4 @@
+import type { CompetencyProfile } from '../../types/competency';
 import type { LearningProgress, LearningSettings, UnitProgressState } from '../../types/learning';
 
 /** Migriert gespeicherten Zustand (z. B. alte Unit-IDs nach Etappen-Split). */
@@ -40,11 +41,24 @@ export function migratePersistedLearning(state: unknown): LearningProgress {
     ...s.diagnosis,
   };
 
+  const competencyProfile: CompetencyProfile =
+    s.competencyProfile && typeof s.competencyProfile === 'object' ? { ...s.competencyProfile } : {};
+
+  const labProgress =
+    s.labProgress && typeof s.labProgress === 'object'
+      ? {
+          sqlTaskDone: { ...(s.labProgress.sqlTaskDone ?? {}) },
+          codeTaskDone: { ...(s.labProgress.codeTaskDone ?? {}) },
+        }
+      : {};
+
   return {
     onboardingComplete: s.onboardingComplete ?? false,
     diagnosis,
     settings,
     unitProgress,
+    competencyProfile,
+    labProgress,
     dailyPlanDate: s.dailyPlanDate ?? null,
     lastUnitId: s.lastUnitId,
   } as LearningProgress;

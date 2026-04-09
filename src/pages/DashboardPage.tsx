@@ -123,8 +123,8 @@ export function DashboardPage() {
       <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Prüfung (wenn du soweit bist)</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Card className="p-4 opacity-90" onClick={() => navigate('/analyse')}>
-          <div className="text-sm text-slate-300">Prüfungsanalyse 2021–2025</div>
-          <div className="text-[11px] text-slate-600">Historische Muster; Prognose nur dort einklappbar</div>
+          <div className="text-sm text-slate-300">Häufigkeitsauswertung 2021–2025</div>
+          <div className="text-[11px] text-slate-600">Neutrale Stichprobe — ohne Prognose oder Prioritätslabels</div>
         </Card>
         <Card
           className={`p-4 ${examReady ? 'cursor-pointer hover:border-red-500/30' : 'opacity-60'}`}

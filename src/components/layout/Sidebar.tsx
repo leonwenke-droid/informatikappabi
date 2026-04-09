@@ -5,13 +5,15 @@ import {
   PenTool,
   GitBranch,
   Database,
-  BarChart3,
   Timer,
   AlertCircle,
   GraduationCap,
   ListTree,
   BookMarked,
   Layers,
+  Terminal,
+  Code2,
+  MessageSquareText,
 } from 'lucide-react';
 import { getDaysUntilExam, getExamCountdownColor } from '../../utils/countdown';
 import { useLearningStore } from '../../store/learningStore';
@@ -25,14 +27,14 @@ const PRIMARY_NAV = [
   { path: '/uebungspool', icon: PenTool, label: 'Aufgabenpool' },
   { path: '/visualizer', icon: GitBranch, label: 'Visualisierungen' },
   { path: '/sql', icon: Database, label: 'SQL-Referenz' },
+  { path: '/sql-lab', icon: Terminal, label: 'SQL-Labor' },
+  { path: '/code-lab', icon: Code2, label: 'Code-Labor' },
+  { path: '/formulierung', icon: MessageSquareText, label: 'Formulierung' },
   { path: '/glossar', icon: BookMarked, label: 'Glossar' },
   { path: '/fehlerlog', icon: AlertCircle, label: 'Fehlerlogbuch' },
 ] as const;
 
-const SECONDARY_NAV = [
-  { path: '/analyse', icon: BarChart3, label: 'Prüfungsanalyse' },
-  { path: '/klausur', icon: Timer, label: 'Klausurmodus' },
-] as const;
+const SECONDARY_NAV = [{ path: '/klausur', icon: Timer, label: 'Klausurmodus' }] as const;
 
 export function Sidebar() {
   const location = useLocation();
@@ -98,7 +100,9 @@ export function Sidebar() {
         <p className="text-[10px] text-slate-700 leading-relaxed">
           Inhalte: KC 2017, Ergänzende Hinweise 2021, Hinweise 2026; Muster aus eA 2021–2025.
         </p>
-        <p className="text-[10px] text-slate-600 mt-1">Wahrscheinlichkeitsangaben nur unter „Prüfungsanalyse“.</p>
+        <NavLink to="/analyse" className="text-[10px] text-slate-600 mt-2 inline-block hover:text-slate-400 underline">
+          Häufigkeitsauswertung (nicht amtlich)
+        </NavLink>
       </div>
     </aside>
   );

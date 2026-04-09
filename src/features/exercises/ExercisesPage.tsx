@@ -8,6 +8,7 @@ import { EXERCISES } from '../../data/exercises';
 import { TOPICS } from '../../data/topics';
 import { useProgressStore } from '../../store/progressStore';
 import { evaluateExercise } from '../../lib/evaluator/localEvaluator';
+import { BackendAPIAdapter } from '../../lib/evaluator/aiEvaluatorAdapter';
 import type { EvaluationResult, Exercise } from '../../types';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 
@@ -29,7 +30,9 @@ export function ExercisesPage() {
   const [answer, setAnswer] = useState('');
   const [mcSelected, setMcSelected] = useState<number[]>([]);
   const [result, setResult] = useState<EvaluationResult | null>(null);
+  const [aiEval, setAiEval] = useState<EvaluationResult | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
 
   const { recordExerciseResult, addMistake, getTopicProgress } = useProgressStore();
 
@@ -75,6 +78,7 @@ export function ExercisesPage() {
     setAnswer('');
     setMcSelected([]);
     setResult(null);
+    setAiEval(null);
   };
 
   const goNext = () => {
@@ -120,6 +124,23 @@ export function ExercisesPage() {
     setIsChecking(false);
   };
 
+  const handleAiEvaluate = async () => {
+    if (!exercise || exercise.type === 'mc' || exercise.type === 'sc') return;
+    if (answer.trim().length < 15) return;
+    setAiBusy(true);
+    const adapter = new BackendAPIAdapter();
+    const r = await adapter.evaluate({
+      exerciseId: exercise.id,
+      question: exercise.question,
+      modelAnswer: exercise.modelAnswer ?? '',
+      userAnswer: answer,
+      operator: exercise.operator,
+      maxPoints: exercise.points,
+    });
+    setAiEval(r);
+    setAiBusy(false);
+  };
+
   const canCheck =
     !result &&
     ((exercise?.type === 'mc' || exercise?.type === 'sc') ? mcSelected.length > 0 : answer.trim().length > 10);
@@ -135,7 +156,7 @@ export function ExercisesPage() {
 
       <AlertBox variant="info" className="mb-5">
         <strong>Bewertungshinweis:</strong> Die automatische Bewertung prüft Schlüsselbegriffe und Struktur.
-        Bei Text-/Code-Aufgaben immer die Musterlösung vergleichen. Die Bewertung ist kein Ersatz für Lehrerfeedback.
+        Bei Text-/Code-Aufgaben immer die Musterlösung vergleichen. Optional: <strong>KI-Feedback</strong> über den lokalen Server (<code className="text-blue-300">npm run dev:all</code>, <code className="text-blue-300">OPENAI_API_KEY</code> in <code className="text-blue-300">.env</code>).
       </AlertBox>
 
       {/* Filter bar */}
@@ -304,6 +325,13 @@ export function ExercisesPage() {
                 {isChecking ? '⏳ Prüfe...' : '✅ Antwort prüfen'}
               </Button>
             )}
+            {exercise &&
+              (exercise.type === 'text' || exercise.type === 'sql' || exercise.type === 'code') &&
+              answer.trim().length >= 15 && (
+                <Button variant="secondary" size="md" onClick={handleAiEvaluate} disabled={aiBusy}>
+                  {aiBusy ? '⏳ KI …' : 'KI-Bewertung (streng)'}
+                </Button>
+              )}
             {result && (
               <Button variant="secondary" onClick={goNext}>
                 Nächste Aufgabe <ChevronRight size={14} />
@@ -329,6 +357,33 @@ export function ExercisesPage() {
               >
                 {result.feedback}
               </div>
+            </div>
+          )}
+          {aiEval && (
+            <div className="mt-5 border border-violet-500/30 rounded-xl p-4 bg-violet-950/20">
+              <div className="text-[11px] font-bold text-violet-300 uppercase mb-2">
+                KI-Rückmeldung {aiEval.source === 'local' ? '(Server nicht erreichbar — Fallback)' : ''}
+              </div>
+              {aiEval.source === 'ai' && aiEval.aiRubric && (
+                <ul className="text-[12px] text-slate-300 space-y-2 mb-3">
+                  <li><span className="text-slate-500">Gesamt:</span> {aiEval.aiRubric.overallVerdict}</li>
+                  <li><span className="text-slate-500">Fachlich:</span> {aiEval.aiRubric.factualCorrectness}</li>
+                  <li><span className="text-slate-500">Operator:</span> {aiEval.aiRubric.operatorFit}</li>
+                  {aiEval.aiRubric.strengths.length > 0 && (
+                    <li><span className="text-slate-500">Stärken:</span> {aiEval.aiRubric.strengths.join('; ')}</li>
+                  )}
+                  {aiEval.aiRubric.weaknesses.length > 0 && (
+                    <li><span className="text-slate-500">Schwächen:</span> {aiEval.aiRubric.weaknesses.join('; ')}</li>
+                  )}
+                  {aiEval.aiRubric.sampleFormulation && (
+                    <li className="text-emerald-300/90"><span className="text-slate-500">Muster:</span> {aiEval.aiRubric.sampleFormulation}</li>
+                  )}
+                </ul>
+              )}
+              <div className="text-[13px] text-slate-200 whitespace-pre-wrap">{aiEval.feedback}</div>
+              {aiEval.source === 'ai' && (
+                <div className="text-[11px] text-slate-500 mt-2">Geschätzte Punkte (KI): {aiEval.score} / {aiEval.maxScore}</div>
+              )}
             </div>
           )}
         </Card>

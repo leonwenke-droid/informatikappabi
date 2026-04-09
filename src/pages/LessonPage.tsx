@@ -7,8 +7,14 @@ import { PracticeSession } from '../features/practice/PracticeSession';
 import { getUnit } from '../content/path/units';
 import { PATH_STAGES } from '../content/path/stages';
 import { useLearningStore } from '../store/learningStore';
-import { getCompletedStageIds, isUnitAccessible } from '../lib/path/unlock';
+import { AlertBox } from '../components/ui/Card';
+import { getCompletedStageIds, isStageUnlocked } from '../lib/path/unlock';
+import { getUnitAccessState, arePrerequisiteUnitsCompleted } from '../lib/competency/access';
 import type { ExerciseTrack, PathExercise } from '../types/learning';
+import type { CompetencyProfile } from '../types/competency';
+
+/** Stabile Referenz für Zustand-Selector (nie `?? {}` im Selector — sonst Endlosschleife). */
+const EMPTY_COMPETENCY: CompetencyProfile = {};
 
 const TRACK_ORDER: ExerciseTrack[] = ['mini', 'guided', 'standard', 'transfer', 'examStyle'];
 
@@ -36,6 +42,7 @@ export function LessonPage() {
   const unit = unitId ? getUnit(unitId) : undefined;
   const stage = stageId ? PATH_STAGES.find((s) => s.id === stageId) : undefined;
   const unitProgress = useLearningStore((s) => s.unitProgress);
+  const competencyProfile = useLearningStore((s) => s.competencyProfile ?? EMPTY_COMPETENCY);
   const completedStages = getCompletedStageIds(PATH_STAGES, unitProgress);
 
   if (!unit || !stage) {
@@ -47,28 +54,26 @@ export function LessonPage() {
     );
   }
 
-  const accessible = isUnitAccessible(unit, PATH_STAGES, completedStages, unitProgress);
-  if (!accessible) {
-    const pre = unit.prerequisiteUnitIds?.[0];
-    const preUnit = pre ? getUnit(pre) : undefined;
-    const preStage = preUnit ? PATH_STAGES.find((s) => s.id === preUnit.stageId) : undefined;
+  const stageUnlocked = isStageUnlocked(stage, completedStages);
+  if (!stageUnlocked) {
     return (
       <div>
-        <PageHeader title="Noch gesperrt" subtitle={unit.title} />
+        <PageHeader title="Etappe noch gesperrt" subtitle={unit.title} />
         <Card className="p-5 max-w-lg">
           <p className="text-slate-300 mb-4">
-            Diese Lektion baut auf vorherigen Einheiten auf. Schließe zuerst die Voraussetzungen ab.
+            Schließe zuerst die vorherigen Etappen ab, damit der Aufbau logisch bleibt.
           </p>
-          {preUnit && preStage && (
-            <Button variant="primary" onClick={() => navigate(`/lernen/${preStage.id}/${preUnit.id}`)}>
-              Zu: {preUnit.title}
-            </Button>
-          )}
-          <Button variant="ghost" className="ml-2" onClick={() => navigate('/lernpfad')}>Lernpfad</Button>
+          <Button variant="ghost" onClick={() => navigate('/lernpfad')}>Zum Lernpfad</Button>
         </Card>
       </div>
     );
   }
+
+  const prereqDone = arePrerequisiteUnitsCompleted(unit, unitProgress);
+  const { access, reason } = getUnitAccessState(unit, competencyProfile, prereqDone);
+  const pre = unit.prerequisiteUnitIds?.[0];
+  const preUnit = pre ? getUnit(pre) : undefined;
+  const preStage = preUnit ? PATH_STAGES.find((s) => s.id === preUnit.stageId) : undefined;
 
   const grouped = groupExercisesByTrack(unit.exercises);
   const orderedKeys: (ExerciseTrack | 'other')[] = [...TRACK_ORDER.filter((t) => grouped[t]?.length), ...(grouped.other?.length ? ['other' as const] : [])];
@@ -79,6 +84,17 @@ export function LessonPage() {
         title={unit.title}
         subtitle={`Etappe ${stage.order}: ${stage.title}`}
       />
+      {access === 'recommended' && reason && (
+        <AlertBox variant="warning" title="Didaktischer Hinweis" className="mb-4">
+          <p className="text-sm mb-2">{reason}</p>
+          {preUnit && preStage && !prereqDone && (
+            <Button size="sm" variant="secondary" onClick={() => navigate(`/lernen/${preStage.id}/${preUnit.id}`)}>
+              Zur vorgezogenen Einheit: {preUnit.title}
+            </Button>
+          )}
+        </AlertBox>
+      )}
+
       {unit.learningGoals && unit.learningGoals.length > 0 && (
         <Card className="p-4 mb-4 border-blue-500/20">
           <div className="text-[11px] font-bold text-slate-500 uppercase mb-2">Lernziele</div>
