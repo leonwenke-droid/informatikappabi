@@ -29,33 +29,42 @@ function parseBody(req: VercelRequest): unknown {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
-  cors(res, origin);
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
+  try {
+    cors(res, origin);
+
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const key = process.env.OPENAI_API_KEY;
+    if (!key) {
+      return res.status(503).json({ error: 'OPENAI_API_KEY nicht gesetzt' });
+    }
+
+    const raw = parseBody(req);
+    if (raw === null) {
+      return res.status(400).json({ error: 'Ungültiger Request-Body' });
+    }
+
+    const result = await runOpenAiEvaluate(raw, {
+      apiKey: key,
+      model: process.env.OPENAI_MODEL,
+    });
+
+    if (!result.ok) {
+      return res.status(result.status).json(result.body);
+    }
+    return res.status(200).json(result.data);
+  } catch (e) {
+    console.error('api/evaluate', e);
+    cors(res, origin);
+    return res.status(500).json({
+      error: (e as Error).message || 'Interner Serverfehler',
+    });
   }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) {
-    return res.status(503).json({ error: 'OPENAI_API_KEY nicht gesetzt' });
-  }
-
-  const raw = parseBody(req);
-  if (raw === null) {
-    return res.status(400).json({ error: 'Ungültiger Request-Body' });
-  }
-
-  const result = await runOpenAiEvaluate(raw, {
-    apiKey: key,
-    model: process.env.OPENAI_MODEL,
-  });
-
-  if (!result.ok) {
-    return res.status(result.status).json(result.body);
-  }
-  return res.status(200).json(result.data);
 }

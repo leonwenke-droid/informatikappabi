@@ -6,17 +6,43 @@ import type {
 } from '../../types';
 import { getEvaluateUrl } from './evalApiUrl';
 
-/** Wenn Vite den Proxy nicht zum Eval-Server (127.0.0.1:8787) durchreichen kann. */
+/** Kontext-Hilfen — nicht bei jedem generischen HTTP-500. */
 function evalUpstreamDevHint(errorMessage: string): string {
   const m = errorMessage.toLowerCase();
-  const httpUpstreamFail = /\b50[0-4]\b|http\s*50[0-4]/.test(m);
-  const networkFail =
-    m.includes('failed to fetch') || m.includes('networkerror') || m.includes('load failed');
-  if (!httpUpstreamFail && !networkFail) return '';
+  if (m.includes('openai_api_key') && m.includes('nicht gesetzt')) {
+    return '\n\nHinweis: OPENAI_API_KEY fehlt — lokal in .env im Projektroot; auf Vercel unter Project → Settings → Environment Variables (ohne VITE_-Prefix).';
+  }
+  const proxyOrConn =
+    /\b502\b|\b503\b|\b504\b/.test(m) ||
+    m.includes('bad gateway') ||
+    m.includes('service unavailable') ||
+    m.includes('gateway timeout') ||
+    m.includes('econnrefused') ||
+    m.includes('connection refused') ||
+    m.includes('failed to fetch') ||
+    m.includes('networkerror') ||
+    m.includes('load failed');
+  if (!proxyOrConn) return '';
   return (
-    '\n\nHinweis: Der Bewertungs-Server (Standard-Port 8787) läuft vermutlich nicht. ' +
-    'Zweites Terminal: npm run dev:api — oder: npm run dev:all. OPENAI_API_KEY in .env im Projektroot setzen.'
+    '\n\nHinweis: Der Bewertungs-Server (Standard-Port 8787) ist evtl. nicht erreichbar. ' +
+    'Lokal: zweites Terminal mit npm run dev:api oder npm run dev:all.'
   );
+}
+
+async function readErrorFromResponse(response: Response): Promise<string> {
+  const text = await response.text();
+  const base = `HTTP ${response.status}`;
+  const trimmed = text.trim();
+  if (!trimmed) return base;
+  try {
+    const j = JSON.parse(trimmed) as { error?: string; detail?: string };
+    if (j?.error) {
+      return j.detail ? `${j.error} — ${j.detail}` : j.error;
+    }
+  } catch {
+    /* not JSON */
+  }
+  return `${base}: ${trimmed.slice(0, 400)}`;
 }
 
 /**
@@ -81,9 +107,7 @@ export class BackendAPIAdapter {
       });
 
       if (!response.ok) {
-        const errBody = await response.json().catch(() => ({}));
-        const msg = (errBody as { error?: string }).error ?? `HTTP ${response.status}`;
-        throw new Error(msg);
+        throw new Error(await readErrorFromResponse(response));
       }
 
       const data = (await response.json()) as {
