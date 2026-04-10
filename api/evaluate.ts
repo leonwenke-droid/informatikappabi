@@ -3,7 +3,7 @@
  * OPENAI_API_KEY und optional OPENAI_MODEL in Vercel → Environment Variables setzen (ohne VITE_-Prefix).
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { runOpenAiEvaluate } from '../server/evaluateCore';
+import { runOpenAiEvaluate } from './lib/evaluateCore';
 
 function cors(res: VercelResponse, origin?: string) {
   res.setHeader(

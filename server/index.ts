@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { runOpenAiEvaluate } from './evaluateCore';
+import { runOpenAiEvaluate } from '../api/lib/evaluateCore';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 dotenv.config({ path: path.join(repoRoot, '.env') });
